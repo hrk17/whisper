@@ -1,13 +1,14 @@
+import os
 from fastapi import FastAPI
 from backend.src.api.transcribe import router
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
 app.include_router(router)
 
 @app.get("/")
 async def root():
-    return {"message": "Hello World"}
-
-# @app.get("/test/")
-# async def test():
-#     return "Success"
+    if os.getenv('prod'):
+        app.mount("/static", StaticFiles(directory="static"), name="static")
+    else:
+        return {"message": "Hello World"}
