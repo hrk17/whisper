@@ -11,7 +11,6 @@ class WhisperService:
         self.model.config.forced_decoder_ids = None
 
     def transcribe(self, audio_bytes: bytes):
-        print('transcribing')
         audio_buffer = io.BytesIO(audio_bytes)
         
         # Load the audio file

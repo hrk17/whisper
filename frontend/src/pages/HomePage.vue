@@ -3,7 +3,8 @@ import axios from 'axios';
 import { ref } from 'vue';
 
 const showUploadModal = ref(false)
-const transcript = ref(undefined as string | undefined)
+const processing = ref(false)
+const transcript = ref<string | undefined>(undefined)
 
 const handleFileUpload = async (event: Event) => {
     const target = event.target as HTMLInputElement;
@@ -16,15 +17,18 @@ const handleFileUpload = async (event: Event) => {
     const formData = new FormData();
     formData.append("file", file);
 
+    processing.value = true
+    showUploadModal.value = false
     try {
         const response = await axios.post("/api/transcribe/", formData);
 
         console.log("Transcription:", response.data.transcription);
         transcript.value = response.data.transcription;
-        showUploadModal.value = false
+
     } catch (error) {
         console.error("Error transcribing audio:", error);
     }
+    processing.value = false
 };
 
 const downloadTranscript = async () => {
@@ -74,8 +78,20 @@ const downloadTranscript = async () => {
     </form>
     <!-- End dropbox -->
 
+    <div v-if="processing" class="flex items-center justify-center align-center h-80 py-5">
+        <div class="atom-spinner">
+            <div class="spinner-inner">
+                <div class="spinner-line"></div>
+                <div class="spinner-line"></div>
+                <div class="spinner-line"></div>
+                <div class="spinner-circle">&#9679;</div>
+            </div>
+        </div>
+    </div>
 
-    <div class="mt-3 block p-6 bg-twilight text-white border border-gray-200 rounded-lg">
+
+    <div v-if="transcript !== undefined && !processing"
+        class="mt-3 block p-6 bg-twilight text-white border border-gray-200 rounded-lg">
         <div class="flex justify-between">
             <h5 class="mb-2 text-2xl font-bold tracking-tight text-white">Transcription</h5>
             <button @click="downloadTranscript"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -85,7 +101,83 @@ const downloadTranscript = async () => {
                 </svg>
             </button>
         </div>
-        <p class="font-normal text-white">{{ transcript }}.</p>
+        <p class="font-normal text-white">{{ transcript }}</p>
     </div>
 
 </template>
+
+<style lang="css">
+.atom-spinner,
+.atom-spinner * {
+    box-sizing: border-box;
+}
+
+.atom-spinner {
+    height: 60px;
+    width: 60px;
+    overflow: hidden;
+}
+
+.atom-spinner .spinner-inner {
+    position: relative;
+    display: block;
+    height: 100%;
+    width: 100%;
+}
+
+.atom-spinner .spinner-circle {
+    display: block;
+    position: absolute;
+    color: #ff1d5e;
+    font-size: calc(60px * 0.24);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.atom-spinner .spinner-line {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border-left-width: calc(60px / 25);
+    border-top-width: calc(60px / 25);
+    border-left-color: #ff1d5e;
+    border-left-style: solid;
+    border-top-style: solid;
+    border-top-color: transparent;
+}
+
+.atom-spinner .spinner-line:nth-child(1) {
+    animation: atom-spinner-animation-1 1s linear infinite;
+    transform: rotateZ(120deg) rotateX(66deg) rotateZ(0deg);
+}
+
+.atom-spinner .spinner-line:nth-child(2) {
+    animation: atom-spinner-animation-2 1s linear infinite;
+    transform: rotateZ(240deg) rotateX(66deg) rotateZ(0deg);
+}
+
+.atom-spinner .spinner-line:nth-child(3) {
+    animation: atom-spinner-animation-3 1s linear infinite;
+    transform: rotateZ(360deg) rotateX(66deg) rotateZ(0deg);
+}
+
+@keyframes atom-spinner-animation-1 {
+    100% {
+        transform: rotateZ(120deg) rotateX(66deg) rotateZ(360deg);
+    }
+}
+
+@keyframes atom-spinner-animation-2 {
+    100% {
+        transform: rotateZ(240deg) rotateX(66deg) rotateZ(360deg);
+    }
+}
+
+@keyframes atom-spinner-animation-3 {
+    100% {
+        transform: rotateZ(360deg) rotateX(66deg) rotateZ(360deg);
+    }
+}
+</style>
