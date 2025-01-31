@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import axios from 'axios';
 import { ref } from 'vue';
 
 const showUploadModal = ref(false)
+const transcript = ref(undefined as string | undefined)
 
 const handleFileUpload = async (event: Event) => {
     const target = event.target as HTMLInputElement;
@@ -12,15 +14,37 @@ const handleFileUpload = async (event: Event) => {
     console.log("Selected file:", file.name);
 
     const formData = new FormData();
-    formData.append("audio", file);
+    formData.append("file", file);
 
     try {
-        // post to api
-        console.log("Upload success:", file)
+        const response = await axios.post("/api/transcribe/", formData);
+
+        console.log("Transcription:", response.data.transcription);
+        transcript.value = response.data.transcription;
+        showUploadModal.value = false
     } catch (error) {
-        console.error("Upload failed:", error);
+        console.error("Error transcribing audio:", error);
     }
 };
+
+const downloadTranscript = async () => {
+    if (transcript.value === undefined) {
+        return
+    }
+    const blob = new Blob([transcript.value], { type: "text/plain" });
+
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "transcript.txt";
+
+    document.body.appendChild(a);
+    a.click();
+
+    URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+}
 </script>
 
 <template>
@@ -50,7 +74,18 @@ const handleFileUpload = async (event: Event) => {
     </form>
     <!-- End dropbox -->
 
-    <card>
-        hi
-    </card>
+
+    <div class="mt-3 block p-6 bg-twilight text-white border border-gray-200 rounded-lg">
+        <div class="flex justify-between">
+            <h5 class="mb-2 text-2xl font-bold tracking-tight text-white">Transcription</h5>
+            <button @click="downloadTranscript"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke-width="1.5" stroke="currentColor" class="size-6">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                </svg>
+            </button>
+        </div>
+        <p class="font-normal text-white">{{ transcript }}.</p>
+    </div>
+
 </template>
