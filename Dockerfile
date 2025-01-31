@@ -15,11 +15,10 @@ WORKDIR /app
 # Install Poetry
 RUN pip install poetry
 
-COPY backend/pyproject.toml backend/poetry.lock ./
+COPY pyproject.toml poetry.lock README.md ./
 
-RUN poetry config virtualenvs.create false && poetry install --no-dev
-
-COPY backend/ ./
+COPY backend/ /app/backend/
+RUN poetry config virtualenvs.create false && poetry install
 
 COPY --from=frontend /app/frontend/dist ./static
 
