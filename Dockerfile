@@ -15,16 +15,16 @@ WORKDIR /app
 # Install Poetry
 RUN pip install poetry
 
-COPY backend/pyproject.toml backend/poetry.lock ./
+COPY pyproject.toml poetry.lock README.md /app/
 
-RUN poetry config virtualenvs.create false && poetry install --no-dev
+COPY backend ./backend
 
-COPY backend/ ./
+RUN poetry config virtualenvs.create false && poetry install
 
 COPY --from=frontend /app/frontend/dist ./static
 
 EXPOSE 8000
-ENV prod=1
+ENV prod=True
 
 CMD ["uvicorn", "backend.src.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
