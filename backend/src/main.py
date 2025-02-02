@@ -8,11 +8,8 @@ app = FastAPI()
 app.include_router(router)
 
 if os.getenv('prod'):
-    app.mount("/static", StaticFiles(directory="/app/static"), name="static")
-
-@app.get("/")
-async def root():
-    if os.getenv('prod'):
-        return FileResponse('/app/static/index.html')
-    else:
+    app.mount("/", StaticFiles(directory="./static", html=True), name="static")
+else:
+    @app.get("/")
+    async def root():
         return {"message": "Hello World"}

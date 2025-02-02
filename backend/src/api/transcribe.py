@@ -22,7 +22,3 @@ async def transcribe_audio(file: UploadFile = File(...)):
     # Pass the bytes to WhisperService for transcription
     transcription = whisper_service.transcribe(audio_bytes)
     return {"transcription": transcription}
-
-@router.get("/test/")
-async def test():
-    return "Success"
